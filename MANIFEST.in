@@ -1,0 +1,18 @@
+include MANIFEST.in
+include requirements.txt
+include *.json
+include *.md
+include *.py
+include *.txt
+recursive-include tania *.css
+recursive-include tania *.csv
+recursive-include tania *.html
+recursive-include tania *.ico
+recursive-include tania *.js
+recursive-include tania *.json
+recursive-include tania *.md
+recursive-include tania *.png
+recursive-include tania *.py
+recursive-include tania *.svg
+recursive-include tania *.txt
+recursive-exclude tania *.pyc
