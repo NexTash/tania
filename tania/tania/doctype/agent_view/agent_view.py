@@ -13,4 +13,10 @@ class AgentView(Document):
 		
 		# deleting Agency View
 		# @Delete
-		frappe.delete_doc('Agency View', self.agency_reference)
+		frappe.delete_doc('Agency View', self.agency_reference)@frappe.whitelist()
+	
+	@frappe.whitelist()
+	def read_operation(self):
+		agency_doc = frappe.get_doc('Agency View', self.agency_reference)
+		agency_doc.is_read = True
+		agency_doc.save()

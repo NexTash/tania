@@ -7,18 +7,43 @@
  "editable_grid": 1,
  "engine": "InnoDB",
  "field_order": [
-  "message"
+  "message",
+  "section_break_2",
+  "is_read",
+  "column_break_4",
+  "agent_name"
  ],
  "fields": [
   {
    "fieldname": "message",
    "fieldtype": "Text",
    "label": "message"
+  },
+  {
+   "default": "0",
+   "fieldname": "is_read",
+   "fieldtype": "Check",
+   "label": "Is Read",
+   "read_only": 1
+  },
+  {
+   "fieldname": "section_break_2",
+   "fieldtype": "Section Break"
+  },
+  {
+   "fieldname": "column_break_4",
+   "fieldtype": "Column Break"
+  },
+  {
+   "fieldname": "agent_name",
+   "fieldtype": "Link",
+   "label": "Agent Name",
+   "options": "Agent"
   }
  ],
  "index_web_pages_for_search": 1,
  "links": [],
- "modified": "2023-01-25 16:59:35.830798",
+ "modified": "2023-01-27 15:38:27.617943",
  "modified_by": "Administrator",
  "module": "Tania",
  "name": "Agency View",

@@ -4,7 +4,7 @@
 frappe.ui.form.on("Agent View", {
   refresh: function (frm) {
     setTimeout(() => {
-      frm.call("delete_operation");
+      frm.call("read_operation");
     }, 2000);
 
     setTimeout(() => {
