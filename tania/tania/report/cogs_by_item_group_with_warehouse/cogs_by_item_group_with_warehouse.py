@@ -1,4 +1,4 @@
-# Copyright (c) 2013, Frappe Technologies Pvt. Ltd. and contributors
+# Copyright (c) 2013, NexTash. and contributors
 # For license information, please see license.txt
 
 import datetime
@@ -40,11 +40,23 @@ def validate_filters(filters: Filters) -> None:
 
 
 def get_columns() -> Columns:
-	return [
+	columns =  [
 		{"label": _("Item Group"), "fieldname": "item_group", "fieldtype": "Data", "width": "200"},
 		{"label": _("COGS Debit"), "fieldname": "cogs_debit", "fieldtype": "Currency", "width": "200"},
 	]
 
+	columns.extend([{
+		"label": _(w.name), 
+		"fieldname": make_column_name_from_warehouse_name(w.name), 
+		"fieldtype": "Currency", 
+		"width": "200"
+	} for w in frappe.get_all("Warehouse", { "is_group": 0 })])
+
+	return columns
+
+
+def make_column_name_from_warehouse_name(name):
+	return name.lower().replace(" ", "_").replace("-", "")
 
 def get_data(filters: Filters) -> Data:
 	filtered_entries = get_filtered_entries(filters)
@@ -59,9 +71,9 @@ def get_data(filters: Filters) -> Data:
 		i = item[1]
 		if i["agg_value"] == 0:
 			continue
-		data.append(get_row(i["name"], i["agg_value"], i["is_group"], i["level"]))
+		data.append(get_row(i["name"], i["agg_value"], i["is_group"], i["level"], i.get("warehouse")))
 		if i["self_value"] < i["agg_value"] and i["self_value"] > 0:
-			data.append(get_row(i["name"], i["self_value"], 0, i["level"] + 1))
+			data.append(get_row(i["name"], i["self_value"], 0, i["level"] + 1, i.get("warehouse")))
 	return data
 
 
@@ -81,7 +93,7 @@ def get_stock_value_difference_list(filtered_entries: FilteredEntries) -> SVDLis
 	voucher_nos = [fe.get("voucher_no") for fe in filtered_entries]
 	svd_list = frappe.get_list(
 		"Stock Ledger Entry",
-		fields=["item_code", "stock_value_difference"],
+		fields=["item_code", "stock_value_difference", "warehouse"],
 		filters=[("voucher_no", "in", voucher_nos), ("is_cancelled", "=", 0)],
 	)
 	assign_item_groups_to_svd_list(svd_list)
@@ -117,7 +129,14 @@ def assign_self_values(leveled_dict: OrderedDict, svd_list: SVDList) -> None:
 	key_dict = {v["name"]: k for k, v in leveled_dict.items()}
 	for item in svd_list:
 		key = key_dict[item.get("item_group")]
+
+		if "warehouse" not in leveled_dict[key]:
+			leveled_dict[key]["warehouse"] = {}
+		if item.get("warehouse") not in leveled_dict[key]["warehouse"]:
+			leveled_dict[key]["warehouse"][item.get("warehouse")] = 0
+
 		leveled_dict[key]["self_value"] += -item.get("stock_value_difference")
+		leveled_dict[key]["warehouse"][item.get("warehouse")] += -item.get("stock_value_difference")
 
 
 def assign_agg_values(leveled_dict: OrderedDict) -> None:
@@ -145,12 +164,24 @@ def assign_agg_values(leveled_dict: OrderedDict) -> None:
 	leveled_dict[rk]["agg_value"] = sum(accu) + leveled_dict[rk]["self_value"]
 
 
-def get_row(name: str, value: float, is_bold: int, indent: int) -> Row:
+def get_row(name: str, value: float, is_bold: int, indent: int, warehouse:str) -> Row:
 	item_group = name
 	if is_bold:
 		item_group = frappe.bold(item_group)
-	return frappe._dict(item_group=item_group, cogs_debit=value, indent=indent)
+	
 
+	row = {
+		"item_group": item_group, 
+		"cogs_debit": value, 
+		"indent": indent
+	}
+
+	if warehouse:
+		for (name, val) in warehouse.items():
+			warehouse_name = make_column_name_from_warehouse_name(name)
+			row[warehouse_name] =  val
+	
+	return row
 
 def assign_item_groups_to_svd_list(svd_list: SVDList) -> None:
 	ig_map = get_item_groups_map(svd_list)
