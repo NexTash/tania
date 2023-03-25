@@ -95,13 +95,12 @@ app_license = "MIT"
 # ---------------
 # Hook on document methods and events
 
-# doc_events = {
-#	"*": {
-#		"on_update": "method",
-#		"on_cancel": "method",
-#		"on_trash": "method"
-#	}
-# }
+doc_events = {
+	"ToDo": {
+		"after_insert": "tania.events.todo.validate",
+        "on_trash" : "tania.events.todo.on_trash",
+	}
+}
 
 # Scheduled Tasks
 # ---------------
